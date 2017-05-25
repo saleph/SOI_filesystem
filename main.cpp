@@ -3,9 +3,15 @@
 #include "block.h"
 #include "superblock.h"
 #include "vdisk.h"
+#include <cstdio>
 
 int main(int argc, char *argv[])
 {
-    std::cout << "Hello World!" << std::endl;
+    VDisk disk("vdisk");
+
+    printf("%d\n", disk.getSuperblock().getUserSpaceSize());
+
+    /*std::cout << disk.getSuperblock().getUserSpaceSize()
+              << std::endl;*/
     return 0;
 }

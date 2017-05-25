@@ -28,6 +28,8 @@ public:
                                int size = DEFAULT_SIZE,
                                int blockSize = DEFALUT_BLOCK_SIZE,
                                int maxFileNumber = DEFAULT_MAX_FILE_NUMBER);
+    static void deleteVDisk(const char *fn);
+
     VDisk(const char *fn);
 
     SuperBlock getSuperblock();
@@ -44,6 +46,10 @@ public:
 
     Block getBlock(int idx);
     void setBlock(int idx, Block &block);
+
+    int getFirstFreeINodeIndex();
+    int getFirstFreeBlockIndex();
+    int getNextFreeBlockIndex(int idx);
 
 private:
     void open();

@@ -4,7 +4,8 @@ CONFIG -= app_bundle
 CONFIG -= qt
 
 SOURCES += main.cpp \
-    vdisk.cpp
+    vdisk.cpp \
+    filesystem.cpp
 
 HEADERS += \
     vdisk.h \

@@ -19,6 +19,10 @@ void VDisk::createNewVDisk(const char *fn,
     fclose(f);
 }
 
+void VDisk::deleteVDisk(const char *fn) {
+    unlink(fn);
+}
+
 VDisk::VDisk(const char *fn) {
     strcpy(filename, fn);
     SuperBlock sb = getSuperblock();
@@ -115,6 +119,32 @@ void VDisk::setBlock(int idx, Block &block) {
     fwrite(block.getData(), sb.getBlockSize(), 1, file);
     fwrite((void*)&nextBlock, sizeof(int), 1, file);
     close();
+}
+
+int VDisk::getFirstFreeINodeIndex() {
+    for (int i = 0, size = getSuperblock().getINodeNumber();
+         i < size; ++i)
+    {
+        if (getInodeBitmapValue(i) == false) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+int VDisk::getFirstFreeBlockIndex() {
+    return getNextFreeBlockIndex(0);
+}
+
+int VDisk::getNextFreeBlockIndex(int idx) {
+    for (int i = idx, size = getSuperblock().getBlocksNumber();
+         i < size; ++i)
+    {
+        if (getBlocksBitmapValue(i) == false) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 void VDisk::open() {

@@ -3,20 +3,24 @@
 
 #include <cstring>
 #include <cassert>
+#include <cstdint>
+#include <climits>
+#include <exception>
 
 #define FILENAME_LEN 30
 
 class INode {
-    char name[FILENAME_LEN];
-    int size;
+    char name[FILENAME_LEN+1];
+    int fileSize;
     int firstBlockIndex;
 
 public:
     INode() { }
 
-    INode(const char *filename, int size, int nextidx)
-        : size(size), firstBlockIndex(nextidx)
+    INode(const char *filename, int fileSize, int firstidx)
+        : fileSize(fileSize), firstBlockIndex(firstidx)
     {
+        assert(strlen(val) <= FILENAME_LEN);
         strcpy(name, filename);
     }
 
@@ -25,17 +29,17 @@ public:
     }
 
     void setName(const char *val) {
-        assert(strlen(val) < FILENAME_LEN);
+        assert(strlen(val) <= FILENAME_LEN);
         strcpy(name, val);
     }
 
     int getSize() {
-        return size;
+        return fileSize;
     }
 
     void setSize(int val) {
         assert(val >= 0);
-        size = val;
+        fileSize = val;
     }
 
     int getFirstBlockIndex() {

@@ -7,17 +7,17 @@
 
 class SuperBlock
 {
-    const int userSpaceSize;
     const int blockSize;
     const int blocksNumber;
+    const int userSpaceSize;
     const int maxFileNumber;
     int userSpaceInUse;
     int firstINodeIndex;
 public:
-    SuperBlock(int s=0, int bs=0, int maxFN=0)
-        : userSpaceSize(s),
-          blockSize(bs),
-          blocksNumber((userSpaceSize+blockSize-1)/blockSize),
+    SuperBlock(int s=1, int bs=1, int maxFN=1)
+        : blockSize(bs),
+          blocksNumber((s+blockSize-1)/blockSize),
+          userSpaceSize(blockSize*blocksNumber),
           maxFileNumber(maxFN),
           firstINodeIndex(maxFileNumber)
     { }
@@ -53,11 +53,13 @@ public:
     void increaseUserSpaceInUse(int val) {
         userSpaceInUse += val;
         assert(userSpaceInUse <= userSpaceSize);
+        assert(userSpaceInUse % blockSize == 0);
     }
 
     void decreaseUserSpaceInUse(int val) {
         userSpaceInUse -= val;
         assert(userSpaceInUse >= 0);
+        assert(userSpaceInUse % blockSize == 0);
     }
 
     void setFirstINodeIndex(int val) {
