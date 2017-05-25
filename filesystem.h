@@ -43,6 +43,7 @@ public:
 
         const int BLOCK_SIZE = superBlock.getBlockSize();
         int nextBlockPos;
+        int usedSpace = 0;
         Block block(BLOCK_SIZE);
         while(fileSize > 0) {
             fread(block.getData(), 1, BLOCK_SIZE, file);
@@ -56,9 +57,12 @@ public:
             }
             vdisk.setBlock(blockPos, block);
             vdisk.setBlocksBitmapValue(blockPos, true);
+            usedSpace += BLOCK_SIZE;
             blockPos = nextBlockPos;
         }
 
+        superBlock.increaseUserSpaceInUse(usedSpace);
+        vdisk.setSuperBlock(superBlock);
         fclose(file);
     }
 
