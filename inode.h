@@ -13,6 +13,7 @@ class INode {
 
 public:
     INode() { }
+
     INode(const char *filename, int size, int nextidx)
         : size(size), firstBlockIndex(nextidx)
     {

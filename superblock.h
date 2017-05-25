@@ -46,7 +46,7 @@ public:
         return firstINodeIndex;
     }
 
-    int getMaxFileNumber() {
+    int getINodeNumber() {
         return maxFileNumber;
     }
 

@@ -39,7 +39,7 @@ public:
 
     uint8_t *data() {
         // for copying
-        return vector;
+        return (uint8_t*)vector;
     }
 };
 

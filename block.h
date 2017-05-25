@@ -6,27 +6,18 @@
 #include <cstring>
 #include <cassert>
 
-template <int size>
-class Block {
-    uint8_t data[size];
-    int nextBlock;
 
+class Block {
+    int size;
+    uint8_t *data;
+    int nextBlock;
 public:
-    Block()
+    Block(int size)
+        : size(size), data(new uint8_t[size])
     { }
 
-    Block(const uint8_t d[size], int next)
-        : nextBlock(next)
-    {
-        memcpy(data, d, sizeof(data));
-    }
-
-    const uint8_t &getData() {
-        return data;
-    }
-
-    void setData(const uint8_t d[size]) {
-        memcpy(data, d, sizeof(data));
+    ~Block() {
+        delete[] data;
     }
 
     int getNextBlock() {
@@ -36,6 +27,10 @@ public:
     void setNextBlock(int val) {
         assert(val >= 0);
         nextBlock = val;
+    }
+
+    uint8_t *getData() {
+        return data;
     }
 };
 

@@ -22,124 +22,32 @@ class VDisk
     int blocksBitmapOffset;
     int inodesOffset;
     int blocksOffset;
+    int realBlockSize;
 public:
     static void createNewVDisk(const char *fn,
                                int size = DEFAULT_SIZE,
                                int blockSize = DEFALUT_BLOCK_SIZE,
-                               int maxFileNumber = DEFAULT_MAX_FILE_NUMBER)
-    {
-        SuperBlock superBlock(size, blockSize, maxFileNumber);
-        int superBlockSize = sizeof(SuperBlock);
-        int inodeBitmapSize = maxFileNumber;
-        int blocksBitmapSize = superBlock.getBlocksNumber();
-        int blocksSize = blockSize * superBlock.getBlocksNumber();
-        int wholeFileSize = superBlockSize + inodeBitmapSize + blocksBitmapSize + blocksSize;
+                               int maxFileNumber = DEFAULT_MAX_FILE_NUMBER);
+    VDisk(const char *fn);
 
-        FILE *f = fopen(fn, "wb");
-        fwrite((char*)&superBlock, sizeof(superBlock), 1, f);
-        ftruncate(fileno(f), wholeFileSize); // fills with zeros
-        fclose(f);
-    }
+    SuperBlock getSuperblock();
+    void setSuperBlock(SuperBlock &sb);
 
-    VDisk(const char *fn) {
-        strcpy(filename, fn);
-        SuperBlock sb = getSuperblock();
-        superBlockOffset = 0;
-        inodeBitmapOffset = sizeof(SuperBlock);
-        blocksBitmapOffset = inodeBitmapOffset + sb.getINodeNumber();
-        inodesOffset = blocksBitmapOffset + sb.getBlocksNumber();
-        blocksOffset = inodesOffset + sizeof(INode) * sb.getINodeNumber();
-    }
+    bool getInodeBitmapValue(int idx);
+    void setInodeBitmapValue(int idx, bool val);
 
-    SuperBlock getSuperblock() {
-        open();
-        SuperBlock sb;
-        fseek(file, superBlockOffset, SEEK_SET);
-        fread((void*)&sb, sizeof(SuperBlock), 1, file);
-        close();
-        return sb;
-    }
+    bool getBlocksBitmapValue(int idx);
+    void setBlocksBitmapValue(int idx, bool val);
 
-    void setSuperBlock(SuperBlock &sb) {
-        open();
-        fseek(file, inodeBitmapOffset, SEEK_SET);
-        fwrite((void*)&sb, sizeof(SuperBlock), 1, file);
-        close();
-    }
+    INode getInode(int idx);
+    void setInode(int idx, INode &inode);
 
-    bool getInodeBitmapValue(int idx) {
-        bool val;
-        open();
-        fseek(file, inodeBitmapOffset + idx, SEEK_SET);
-        fread((void*)&val, 1, 1, file);
-        close();
-        return val;
-    }
-
-    void setInodeBitmapValue(int idx, bool val) {
-        open();
-        fseek(file, inodeBitmapOffset + idx, SEEK_SET);
-        fwrite((void*)&val, 1, 1, file);
-        close();
-    }
-
-    bool getBlocksBitmapValue(int idx) {
-        bool val;
-        open();
-        fseek(file, blocksBitmapOffset + idx, SEEK_SET);
-        fread((void*)&val, 1, 1, file);
-        close();
-        return val;
-    }
-
-    void setBlocksBitmapValue(int idx, bool val) {
-        open();
-        fseek(file, blocksBitmapOffset + idx, SEEK_SET);
-        fwrite((void*)&val, 1, 1, file);
-        close();
-    }
-
-    INode getInode(int idx) {
-        INode inode;
-        open();
-        fseek(file, inodesOffset + (idx*sizeof(INode)), SEEK_SET);
-        fread((void*)&inode, sizeof(INode), 1, file);
-        close();
-        return inode;
-    }
-
-    void setInode(int idx, INode &inode) {
-        open();
-        fseek(file, inodesOffset + (idx*sizeof(INode)), SEEK_SET);
-        fwrite((void*)&inode, sizeof(INode), 1, file);
-        close();
-    }
-
-    Block getBlock(int idx) {
-        Block block;
-        open();
-        fseek(file, blocksOffset + (idx*sizeof(Block)), SEEK_SET);
-        fread((void*)&block, sizeof(Block), 1, file);
-        close();
-        return block;
-    }
-
-    void setBlock(int idx, Block &block) {
-        open();
-        fseek(file, blocksOffset + (idx*sizeof(Block)), SEEK_SET);
-        fwrite((void*)&block, sizeof(Block), 1, file);
-        close();
-    }
+    Block getBlock(int idx);
+    void setBlock(int idx, Block &block);
 
 private:
-    void open() {
-        file = fopen(filename, "r+b");
-    }
-    void close() {
-        fclose(file);
-    }
-
-
+    void open();
+    void close();
 };
 
 #endif // VDISK_H
