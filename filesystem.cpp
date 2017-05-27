@@ -61,16 +61,8 @@ void Filesystem::copyFileFromLinux(const char *fn) {
 void Filesystem::copyFileFromVDisk(const char *fn) {
     SuperBlock superBlock = vdisk.getSuperblock();
     INode inode;
-    int i;
-    for (i = 0; i < superBlock.getINodeNumber(); ++i) {
-        if (vdisk.getInodeBitmapValue(i)) {
-            inode = vdisk.getInode(i);
-            if (!strcmp(inode.getName(), fn)) {
-                break;
-            }
-        }
-    }
-    if (i == superBlock.getINodeNumber()) {
+    int idx = getInodeIndexOfFile(fn);
+    if (idx == superBlock.getINodeNumber()) {
         printf("No file with specified filename...\n");
         return;
     }
@@ -93,7 +85,16 @@ void Filesystem::copyFileFromVDisk(const char *fn) {
 }
 
 void Filesystem::ls() {
+    printf("Files in dir: \n");
+    printf("%15s|%8s|%10s\n", "filename", "size", "1. sector");
 
+    int inodesNumber = vdisk.getSuperblock().getINodeNumber();
+    int i = vdisk.getFirstTakenINodeIndex();
+    while (i < inodesNumber) {
+        INode inode = vdisk.getInode(i);
+        printf("%15s|%8d|%10d\n", inode.getName(), inode.getSize(), inode.getFirstBlockIndex());
+        i = vdisk.getNextTakenINodeIndex(i);
+    }
 }
 
 void Filesystem::deleteFile(const char *fn) {
@@ -113,16 +114,22 @@ int Filesystem::getFileSize(FILE *f) {
     return size;
 }
 
-bool Filesystem::isFileOnVDisk(const char *fn) {
+int Filesystem::getInodeIndexOfFile(const char *fn) {
     SuperBlock superBlock = vdisk.getSuperblock();
-    for (int i = 0; i < superBlock.getINodeNumber(); ++i) {
+    for (int i = 0, size = superBlock.getINodeNumber(); i < size; ++i) {
         if (vdisk.getInodeBitmapValue(i)) {
             INode inode = vdisk.getInode(i);
-            printf("Comparison %d: %s == %s\n", i, inode.getName(), fn);
             if (!strcmp(inode.getName(), fn)) {
-                return true;
+                return i;
             }
         }
     }
-    return false;
+    return superBlock.getINodeNumber();
+
+}
+
+bool Filesystem::isFileOnVDisk(const char *fn) {
+    int idx = getInodeIndexOfFile(fn);
+    int inodesNumber = vdisk.getSuperblock().getINodeNumber();
+    return (idx == inodesNumber ? false : true);
 }

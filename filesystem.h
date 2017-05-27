@@ -26,6 +26,7 @@ public:
 
 private:
     int getFileSize(FILE *f);
+    int getInodeIndexOfFile(const char *fn);
     bool isFileOnVDisk(const char *fn);
 };
 

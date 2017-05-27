@@ -48,6 +48,8 @@ public:
     void setBlock(int idx, Block &block);
 
     int getFirstFreeINodeIndex();
+    int getFirstTakenINodeIndex();
+    int getNextTakenINodeIndex(int idx);
     int getFirstFreeBlockIndex();
     int getNextFreeBlockIndex(int idx);
 

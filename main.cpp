@@ -12,7 +12,8 @@ int main(int argc, char *argv[])
     Filesystem fs("dd");
     //fs.copyFileFromLinux("file.txt");
     //fs.printStatistics();
-    fs.copyFileFromVDisk("file.txt");
+    //fs.copyFileFromVDisk("file.txt");
+    fs.ls();
 
     return 0;
 }

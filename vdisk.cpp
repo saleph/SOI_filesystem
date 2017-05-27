@@ -123,22 +123,37 @@ void VDisk::setBlock(int idx, Block &block) {
 }
 
 int VDisk::getFirstFreeINodeIndex() {
-    for (int i = 0, size = getSuperblock().getINodeNumber();
-         i < size; ++i)
+    int size = getSuperblock().getINodeNumber();
+    for (int i = 0; i < size; ++i)
     {
         if (getInodeBitmapValue(i) == false) {
             return i;
         }
     }
-    return -1;
+    return size;
+}
+
+int VDisk::getFirstTakenINodeIndex() {
+    return getNextTakenINodeIndex(-1);
+}
+
+int VDisk::getNextTakenINodeIndex(int idx) {
+    int size = getSuperblock().getINodeNumber();
+    for (int i = idx + 1; i < size; ++i)
+    {
+        if (getInodeBitmapValue(i) == true) {
+            return i;
+        }
+    }
+    return size;
 }
 
 int VDisk::getFirstFreeBlockIndex() {
-    return getNextFreeBlockIndex(0);
+    return getNextFreeBlockIndex(-1);
 }
 
 int VDisk::getNextFreeBlockIndex(int idx) {
-    for (int i = idx, size = getSuperblock().getBlocksNumber();
+    for (int i = idx + 1, size = getSuperblock().getBlocksNumber();
          i < size; ++i)
     {
         if (getBlocksBitmapValue(i) == false) {
