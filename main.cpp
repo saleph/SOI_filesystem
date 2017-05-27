@@ -14,6 +14,8 @@ int main(int argc, char *argv[])
     //fs.printStatistics();
     //fs.copyFileFromVDisk("file.txt");
     fs.ls();
+    fs.deleteFile("file.txt");
+    fs.ls();
 
     return 0;
 }

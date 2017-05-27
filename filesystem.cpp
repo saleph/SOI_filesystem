@@ -98,7 +98,22 @@ void Filesystem::ls() {
 }
 
 void Filesystem::deleteFile(const char *fn) {
+    SuperBlock superBlock = vdisk.getSuperblock();
+    int inodeidx = getInodeIndexOfFile(fn);
+    if (inodeidx == superBlock.getINodeNumber()) {
+        printf("No file with specified filename...\n");
+        return;
+    }
+    INode inode = vdisk.getInode(inodeidx);
+    int blockidx = inode.getFirstBlockIndex();
 
+    while (blockidx < superBlock.getBlocksNumber()) {
+        vdisk.setBlocksBitmapValue(blockidx, false);
+        blockidx = vdisk.getBlock(blockidx).getNextBlock();
+    }
+
+    vdisk.setInodeBitmapValue(inodeidx, false);
+    printf("'%s' deleted from vdisk...\n", fn);
 }
 
 void Filesystem::printStatistics() {
