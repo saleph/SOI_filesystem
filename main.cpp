@@ -2,16 +2,17 @@
 #include "bitmap.h"
 #include "block.h"
 #include "superblock.h"
+#include "filesystem.h"
 #include "vdisk.h"
 #include <cstdio>
 
 int main(int argc, char *argv[])
 {
-    VDisk disk("vdisk");
+    //VDisk::createNewVDisk("dd");
+    Filesystem fs("dd");
+    //fs.copyFileFromLinux("file.txt");
+    //fs.printStatistics();
+    fs.copyFileFromVDisk("file.txt");
 
-    printf("%d\n", disk.getSuperblock().getUserSpaceSize());
-
-    /*std::cout << disk.getSuperblock().getUserSpaceSize()
-              << std::endl;*/
     return 0;
 }

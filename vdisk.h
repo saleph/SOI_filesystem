@@ -51,6 +51,8 @@ public:
     int getFirstFreeBlockIndex();
     int getNextFreeBlockIndex(int idx);
 
+    void printSectors();
+
 private:
     void open();
     void close();

@@ -4,6 +4,8 @@
 #include <stdint-gcc.h>
 #include <stdlib.h>
 #include <cstring>
+#include <cmath>
+#include <cstdio>
 
 class Bitmap
 {

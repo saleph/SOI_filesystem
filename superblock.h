@@ -3,6 +3,7 @@
 
 #include <stdlib.h>
 #include <cassert>
+#include <cstdio>
 
 
 class SuperBlock
@@ -65,6 +66,10 @@ public:
     void setFirstINodeIndex(int val) {
         assert(val <= maxFileNumber);
         firstINodeIndex = val;
+    }
+
+    void printStatistics() {
+        printf("Userspace in use: %d\n", userSpaceInUse);
     }
 };
 

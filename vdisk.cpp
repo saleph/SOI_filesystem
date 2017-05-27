@@ -7,11 +7,12 @@ void VDisk::createNewVDisk(const char *fn,
 {
     SuperBlock superBlock(size, blockSize, maxFileNumber);
     int superBlockSize = sizeof(SuperBlock);
-    int inodeBitmapSize = maxFileNumber;
+    int inodeBitmapSize = superBlock.getINodeNumber();
     int blocksBitmapSize = superBlock.getBlocksNumber();
+    int inodesSize = superBlock.getINodeNumber() * (sizeof(INode));
     int rawBlockSize = blockSize + sizeof(int);
     int blocksSize = rawBlockSize * superBlock.getBlocksNumber();
-    int wholeFileSize = superBlockSize + inodeBitmapSize + blocksBitmapSize + blocksSize;
+    int wholeFileSize = superBlockSize + inodeBitmapSize + blocksBitmapSize + inodesSize + blocksSize;
 
     FILE *f = fopen(fn, "wb");
     fwrite((char*)&superBlock, sizeof(superBlock), 1, f);
@@ -30,7 +31,7 @@ VDisk::VDisk(const char *fn) {
     inodeBitmapOffset = sizeof(SuperBlock);
     blocksBitmapOffset = inodeBitmapOffset + sb.getINodeNumber();
     inodesOffset = blocksBitmapOffset + sb.getBlocksNumber();
-    blocksOffset = inodesOffset + sizeof(INode) * sb.getINodeNumber();
+    blocksOffset = inodesOffset + (sizeof(INode) * sb.getINodeNumber());
     realBlockSize = sb.getBlockSize() + sizeof(int);
 }
 
@@ -45,7 +46,7 @@ SuperBlock VDisk::getSuperblock() {
 
 void VDisk::setSuperBlock(SuperBlock &sb) {
     open();
-    fseek(file, inodeBitmapOffset, SEEK_SET);
+    fseek(file, superBlockOffset, SEEK_SET);
     fwrite((void*)&sb, sizeof(SuperBlock), 1, file);
     close();
 }
@@ -147,8 +148,36 @@ int VDisk::getNextFreeBlockIndex(int idx) {
     return -1;
 }
 
+void VDisk::printSectors() {
+    SuperBlock sb = getSuperblock();
+    printf("Inodes: \n");
+
+    const int INODES_SECTORS_IN_LINE = sqrt(sb.getINodeNumber());
+    for (int i = 0, size = sb.getINodeNumber(); i < size; i++) {
+        char c = getInodeBitmapValue(i) ? 'x' : '_';
+        printf("%c", c);
+        if ((i+1) % INODES_SECTORS_IN_LINE == 0) {
+            printf("\n");
+        }
+    }
+    printf("\n");
+
+    printf("Blocks:\n");
+    const int BLOCK_SECTORS_IN_LINE = sqrt(sb.getBlocksNumber());
+    for (int i = 0, size = sb.getBlocksNumber(); i < size; i++) {
+        char c = getBlocksBitmapValue(i) ? 'x' : '_';
+        printf("%c", c);
+        if ((i+1) % BLOCK_SECTORS_IN_LINE == 0) {
+            printf("\n");
+        }
+    }
+    printf("\n");
+
+}
+
 void VDisk::open() {
     file = fopen(filename, "r+b");
+    rewind(file);
 }
 
 void VDisk::close() {

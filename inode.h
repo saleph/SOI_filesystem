@@ -6,8 +6,9 @@
 #include <cstdint>
 #include <climits>
 #include <exception>
+#include <cstdio>
 
-#define FILENAME_LEN 30
+#define FILENAME_LEN 31
 
 class INode {
     char name[FILENAME_LEN+1];
@@ -20,7 +21,7 @@ public:
     INode(const char *filename, int fileSize, int firstidx)
         : fileSize(fileSize), firstBlockIndex(firstidx)
     {
-        assert(strlen(val) <= FILENAME_LEN);
+        assert(strlen(filename) <= FILENAME_LEN);
         strcpy(name, filename);
     }
 
