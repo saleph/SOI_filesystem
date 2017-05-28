@@ -153,19 +153,70 @@ int VDisk::getFirstFreeBlockIndex() {
 }
 
 int VDisk::getNextFreeBlockIndex(int idx) {
-    for (int i = idx + 1, size = getSuperblock().getBlocksNumber();
-         i < size; ++i)
+    int size = getSuperblock().getBlocksNumber();
+    for (int i = idx + 1; i < size; ++i)
     {
         if (getBlocksBitmapValue(i) == false) {
             return i;
         }
     }
-    return -1;
+    return size;
+}
+
+void VDisk::printStatistics() {
+    SuperBlock sb = getSuperblock();
+    printf("FS statistics:\n");
+    printf("%10s|%15s|%10s|%20s\n", "offset", "type", "size", "state [taken/size]");
+
+    printf("%10d|%15s|%10lu|%9d/%d\n", superBlockOffset, "superblock", sizeof(SuperBlock), sb.getUserSpaceInUse(), sb.getUserSpaceSize());
+    printf("%10d|%15s|%10d|%11s\n", inodeBitmapOffset, "inodes bitmap", sb.getINodeNumber(), "---");
+    printf("%10d|%15s|%10d|%11s\n", blocksBitmapOffset, "blocks bitmap", sb.getBlocksNumber(), "---");
+    printf("%10d|%15s|%10lu|%9d/%d\n", inodesOffset, "inodes", sb.getINodeNumber() * sizeof(INode), getINodesTaken(), sb.getINodeNumber());
+    printf("%10d|%15s|%10d|%9d/%d\n", blocksOffset, "blocks", sb.getBlocksNumber() * realBlockSize, getBlocksTaken(), sb.getBlocksNumber());
+
+}
+
+int VDisk::getINodesTaken() {
+    int taken = 0;
+    int idx = getFirstTakenINodeIndex();
+    int idxMax = getSuperblock().getINodeNumber();
+    while (idx < idxMax) {
+        ++taken;
+        idx = getNextTakenINodeIndex(idx);
+    }
+    return taken;
+}
+
+int VDisk::getBlocksTaken() {
+    int taken = 0;
+    int idx = getFirstTakenBlockIndex();
+    int idxMax = getSuperblock().getINodeNumber();
+    while (idx < idxMax) {
+        ++taken;
+        idx = getNextTakenBlockIndex(idx);
+    }
+    return taken;
+}
+
+int VDisk::getFirstTakenBlockIndex() {
+    return getNextTakenBlockIndex(-1);
+}
+
+int VDisk::getNextTakenBlockIndex(int idx) {
+    int size = getSuperblock().getBlocksNumber();
+    for (int i = idx + 1; i < size; ++i)
+    {
+        if (getBlocksBitmapValue(i) == true) {
+            return i;
+        }
+    }
+    return size;
 }
 
 void VDisk::printSectors() {
     SuperBlock sb = getSuperblock();
-    printf("Inodes: \n");
+    printf("================SECTORS:\n");
+    printf("===Inodes: \n");
 
     const int INODES_SECTORS_IN_LINE = sqrt(sb.getINodeNumber());
     for (int i = 0, size = sb.getINodeNumber(); i < size; i++) {
@@ -177,7 +228,7 @@ void VDisk::printSectors() {
     }
     printf("\n");
 
-    printf("Blocks:\n");
+    printf("===Blocks:\n");
     const int BLOCK_SECTORS_IN_LINE = sqrt(sb.getBlocksNumber());
     for (int i = 0, size = sb.getBlocksNumber(); i < size; i++) {
         char c = getBlocksBitmapValue(i) ? 'x' : '_';

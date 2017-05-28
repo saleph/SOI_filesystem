@@ -8,14 +8,12 @@
 
 int main(int argc, char *argv[])
 {
-    //VDisk::createNewVDisk("dd");
+    VDisk::createNewVDisk("dd");
     Filesystem fs("dd");
-    //fs.copyFileFromLinux("file.txt");
-    //fs.printStatistics();
+    fs.copyFileFromLinux("file.txt");
+    fs.ls();
+    fs.printStatistics();
     //fs.copyFileFromVDisk("file.txt");
-    fs.ls();
-    fs.deleteFile("file.txt");
-    fs.ls();
 
     return 0;
 }

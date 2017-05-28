@@ -18,6 +18,12 @@ class Filesystem {
 public:
     Filesystem(const char *fn);
 
+    static void createFS(const char *fn,
+                               int size = DEFAULT_SIZE,
+                               int blockSize = DEFALUT_BLOCK_SIZE,
+                               int maxFileNumber = DEFAULT_MAX_FILE_NUMBER);
+    static void deleteFS(const char *fn);
+
     void copyFileFromLinux(const char *fn);
     void copyFileFromVDisk(const char *fn);
     void ls();

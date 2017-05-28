@@ -7,7 +7,11 @@
 #include "superblock.h"
 #include "block.h"
 #include "inode.h"
+#include <cstdlib>
+#include <stdio.h>
+#include <stdlib.h>
 #include "bitmap.h"
+#include <cstring>
 
 #define DEFAULT_SIZE (1 << 20)
 #define DEFALUT_BLOCK_SIZE (1 << 8)
@@ -50,14 +54,20 @@ public:
     int getFirstFreeINodeIndex();
     int getFirstTakenINodeIndex();
     int getNextTakenINodeIndex(int idx);
+
     int getFirstFreeBlockIndex();
     int getNextFreeBlockIndex(int idx);
+    int getFirstTakenBlockIndex();
+    int getNextTakenBlockIndex(int idx);
 
+    void printStatistics();
     void printSectors();
 
 private:
     void open();
     void close();
+    int getINodesTaken();
+    int getBlocksTaken();
 };
 
 #endif // VDISK_H

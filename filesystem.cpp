@@ -4,6 +4,18 @@ Filesystem::Filesystem(const char *fn)
     : vdisk(fn)
 { }
 
+static void createFS(const char *fn,
+                           int size = DEFAULT_SIZE,
+                           int blockSize = DEFALUT_BLOCK_SIZE,
+                           int maxFileNumber = DEFAULT_MAX_FILE_NUMBER)
+{
+    VDisk::createNewVDisk(fn, size, blockSize, maxFileNumber);
+}
+
+static void deleteFS(const char *fn) {
+    VDisk::deleteVDisk(fn);
+}
+
 void Filesystem::copyFileFromLinux(const char *fn) {
     assert(strlen(fn) < FILENAME_LEN);
     if (isFileOnVDisk(fn)) {
@@ -13,7 +25,7 @@ void Filesystem::copyFileFromLinux(const char *fn) {
 
     FILE *file = fopen(fn, "rb");
     if (!file) {
-        printf("File doesn't exist...");
+        printf("File doesn't exist...\n");
         return;
     }
 
@@ -117,8 +129,7 @@ void Filesystem::deleteFile(const char *fn) {
 }
 
 void Filesystem::printStatistics() {
-    SuperBlock sb = vdisk.getSuperblock();
-    sb.printStatistics();
+    vdisk.printStatistics();
     vdisk.printSectors();
 }
 
