@@ -19,9 +19,9 @@ public:
     Filesystem(const char *fn);
 
     static void createFS(const char *fn,
-                               int size = DEFAULT_SIZE,
-                               int blockSize = DEFALUT_BLOCK_SIZE,
-                               int maxFileNumber = DEFAULT_MAX_FILE_NUMBER);
+                               long size = DEFAULT_SIZE,
+                               long blockSize = DEFALUT_BLOCK_SIZE,
+                               long maxFileNumber = DEFAULT_MAX_FILE_NUMBER);
     static void deleteFS(const char *fn);
 
     void copyFileFromLinux(const char *fn);
@@ -32,8 +32,8 @@ public:
     void printSectors();
 
 private:
-    int getFileSize(FILE *f);
-    int getInodeIndexOfFile(const char *fn);
+    long getFileSize(FILE *f);
+    long getInodeIndexOfFile(const char *fn);
     bool isFileOnVDisk(const char *fn);
 };
 

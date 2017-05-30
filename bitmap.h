@@ -9,12 +9,12 @@
 class Bitmap
 {
     bool *vector;
-    int size;
+    long size;
 public:
-    Bitmap(int s)
+    Bitmap(long s)
         : vector(new bool[s]), size(s)
     { }
-    Bitmap(uint8_t *data, int s)
+    Bitmap(uint8_t *data, long s)
         : Bitmap(s)
     {
         memcpy(vector, data, size);
@@ -23,18 +23,18 @@ public:
         delete[] vector;
     }
 
-    bool &operator[](int idx) {
+    bool &operator[](long idx) {
         return vector[idx];
     }
 
-    int getIndexFirstNotZero() {
-        for (int i = 0; i < size; i++)
+    long getIndexFirstNotZero() {
+        for (long i = 0; i < size; i++)
             if (vector[i])
                 return i;
         return -1;
     }
 
-    int getSize() {
+    long getSize() {
         return size;
     }
 

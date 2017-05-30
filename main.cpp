@@ -4,9 +4,17 @@
 #include <cstring>
 
 void doDefault() {
-    Filesystem::createFS("lll");
+    Filesystem::createFS("lll", 1000000);
     Filesystem("lll").printStatistics();
-
+    Filesystem("lll").copyFileFromLinux("plik0");
+    Filesystem("lll").printStatistics();
+    Filesystem("lll").ls();
+    Filesystem("lll").copyFileFromLinux("plik1");
+    Filesystem("lll").printStatistics();
+    Filesystem("lll").ls();
+    Filesystem("lll").copyFileFromLinux("plik2");
+    Filesystem("lll").printStatistics();
+    Filesystem("lll").ls();
 }
 
 int main(int argc, char *argv[])
@@ -33,13 +41,13 @@ int main(int argc, char *argv[])
                 Filesystem::createFS(argv[1]);
                 return 0;
             case 4:
-                Filesystem::createFS(argv[1], atoi(argv[3]));
+                Filesystem::createFS(argv[1], atol(argv[3]));
                 return 0;
             case 5:
-                Filesystem::createFS(argv[1], atoi(argv[3]), atoi(argv[4]));
+                Filesystem::createFS(argv[1], atol(argv[3]), atol(argv[4]));
                 return 0;
             case 6:
-                Filesystem::createFS(argv[1], atoi(argv[3]), atoi(argv[4]), atoi(argv[5]));
+                Filesystem::createFS(argv[1], atol(argv[3]), atol(argv[4]), atol(argv[5]));
                 return 0;
             }
             return 0;

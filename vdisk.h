@@ -21,17 +21,17 @@ class VDisk
 {
     char filename[256];
     FILE *file;
-    int superBlockOffset;
-    int inodeBitmapOffset;
-    int blocksBitmapOffset;
-    int inodesOffset;
-    int blocksOffset;
-    int realBlockSize;
+    long superBlockOffset;
+    long inodeBitmapOffset;
+    long blocksBitmapOffset;
+    long inodesOffset;
+    long blocksOffset;
+    long realBlockSize;
 public:
     static void createNewVDisk(const char *fn,
-                               int size = DEFAULT_SIZE,
-                               int blockSize = DEFALUT_BLOCK_SIZE,
-                               int maxFileNumber = DEFAULT_MAX_FILE_NUMBER);
+                               long size = DEFAULT_SIZE,
+                               long blockSize = DEFALUT_BLOCK_SIZE,
+                               long maxFileNumber = DEFAULT_MAX_FILE_NUMBER);
     static void deleteVDisk(const char *fn);
 
     VDisk(const char *fn);
@@ -39,26 +39,26 @@ public:
     SuperBlock getSuperblock();
     void setSuperBlock(SuperBlock &sb);
 
-    bool getInodeBitmapValue(int idx);
-    void setInodeBitmapValue(int idx, bool val);
+    bool getInodeBitmapValue(long idx);
+    void setInodeBitmapValue(long idx, bool val);
 
-    bool getBlocksBitmapValue(int idx);
-    void setBlocksBitmapValue(int idx, bool val);
+    bool getBlocksBitmapValue(long idx);
+    void setBlocksBitmapValue(long idx, bool val);
 
-    INode getInode(int idx);
-    void setInode(int idx, INode &inode);
+    INode getInode(long idx);
+    void setInode(long idx, INode &inode);
 
-    Block getBlock(int idx);
-    void setBlock(int idx, Block &block);
+    Block getBlock(long idx);
+    void setBlock(long idx, Block &block);
 
-    int getFirstFreeINodeIndex();
-    int getFirstTakenINodeIndex();
-    int getNextTakenINodeIndex(int idx);
+    long getFirstFreeINodeIndex();
+    long getFirstTakenINodeIndex();
+    long getNextTakenINodeIndex(long idx);
 
-    int getFirstFreeBlockIndex();
-    int getNextFreeBlockIndex(int idx);
-    int getFirstTakenBlockIndex();
-    int getNextTakenBlockIndex(int idx);
+    long getFirstFreeBlockIndex();
+    long getNextFreeBlockIndex(long idx);
+    long getFirstTakenBlockIndex();
+    long getNextTakenBlockIndex(long idx);
 
     void printStatistics();
     void printSectors();
@@ -66,8 +66,8 @@ public:
 private:
     void open();
     void close();
-    int getINodesTaken();
-    int getBlocksTaken();
+    long getINodesTaken();
+    long getBlocksTaken();
 };
 
 #endif // VDISK_H

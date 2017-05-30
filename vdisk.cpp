@@ -1,18 +1,18 @@
 #include "vdisk.h"
 
 void VDisk::createNewVDisk(const char *fn,
-                           int size,
-                           int blockSize,
-                           int maxFileNumber)
+                           long size,
+                           long blockSize,
+                           long maxFileNumber)
 {
     SuperBlock superBlock(size, blockSize, maxFileNumber);
-    int superBlockSize = sizeof(SuperBlock);
-    int inodeBitmapSize = superBlock.getINodeNumber();
-    int blocksBitmapSize = superBlock.getBlocksNumber();
-    int inodesSize = superBlock.getINodeNumber() * (sizeof(INode));
-    int rawBlockSize = blockSize + sizeof(int);
-    int blocksSize = rawBlockSize * superBlock.getBlocksNumber();
-    int wholeFileSize = superBlockSize + inodeBitmapSize + blocksBitmapSize + inodesSize + blocksSize;
+    long superBlockSize = sizeof(SuperBlock);
+    long inodeBitmapSize = superBlock.getINodeNumber();
+    long blocksBitmapSize = superBlock.getBlocksNumber();
+    long inodesSize = superBlock.getINodeNumber() * (sizeof(INode));
+    long rawBlockSize = blockSize + sizeof(long);
+    long blocksSize = rawBlockSize * superBlock.getBlocksNumber();
+    long wholeFileSize = superBlockSize + inodeBitmapSize + blocksBitmapSize + inodesSize + blocksSize;
 
     FILE *f = fopen(fn, "wb");
     fwrite((char*)&superBlock, sizeof(superBlock), 1, f);
@@ -32,16 +32,28 @@ VDisk::VDisk(const char *fn) {
     blocksBitmapOffset = inodeBitmapOffset + sb.getINodeNumber();
     inodesOffset = blocksBitmapOffset + sb.getBlocksNumber();
     blocksOffset = inodesOffset + (sizeof(INode) * sb.getINodeNumber());
-    realBlockSize = sb.getBlockSize() + sizeof(int);
+    realBlockSize = sb.getBlockSize() + sizeof(long);
 }
 
 SuperBlock VDisk::getSuperblock() {
     open();
     SuperBlock sb;
+    sb.printStatistics();
     fseek(file, superBlockOffset, SEEK_SET);
     fread((void*)&sb, sizeof(SuperBlock), 1, file);
+    sb.printStatistics();
     close();
     return sb;
+}
+
+void VDisk::open() {
+    file = fopen(filename, "r+b");
+    assert(!file);
+    rewind(file);
+}
+
+void VDisk::close() {
+    fclose(file);
 }
 
 void VDisk::setSuperBlock(SuperBlock &sb) {
@@ -51,7 +63,7 @@ void VDisk::setSuperBlock(SuperBlock &sb) {
     close();
 }
 
-bool VDisk::getInodeBitmapValue(int idx) {
+bool VDisk::getInodeBitmapValue(long idx) {
     bool val;
     open();
     fseek(file, inodeBitmapOffset + idx, SEEK_SET);
@@ -60,14 +72,14 @@ bool VDisk::getInodeBitmapValue(int idx) {
     return val;
 }
 
-void VDisk::setInodeBitmapValue(int idx, bool val) {
+void VDisk::setInodeBitmapValue(long idx, bool val) {
     open();
     fseek(file, inodeBitmapOffset + idx, SEEK_SET);
     fwrite((void*)&val, 1, 1, file);
     close();
 }
 
-bool VDisk::getBlocksBitmapValue(int idx) {
+bool VDisk::getBlocksBitmapValue(long idx) {
     bool val;
     open();
     fseek(file, blocksBitmapOffset + idx, SEEK_SET);
@@ -76,14 +88,14 @@ bool VDisk::getBlocksBitmapValue(int idx) {
     return val;
 }
 
-void VDisk::setBlocksBitmapValue(int idx, bool val) {
+void VDisk::setBlocksBitmapValue(long idx, bool val) {
     open();
     fseek(file, blocksBitmapOffset + idx, SEEK_SET);
     fwrite((void*)&val, 1, 1, file);
     close();
 }
 
-INode VDisk::getInode(int idx) {
+INode VDisk::getInode(long idx) {
     INode inode;
     open();
     fseek(file, inodesOffset + (idx*sizeof(INode)), SEEK_SET);
@@ -92,39 +104,39 @@ INode VDisk::getInode(int idx) {
     return inode;
 }
 
-void VDisk::setInode(int idx, INode &inode) {
+void VDisk::setInode(long idx, INode &inode) {
     open();
     fseek(file, inodesOffset + (idx*sizeof(INode)), SEEK_SET);
     fwrite((void*)&inode, sizeof(INode), 1, file);
     close();
 }
 
-Block VDisk::getBlock(int idx) {
+Block VDisk::getBlock(long idx) {
     SuperBlock sb = getSuperblock();
     Block block(sb.getBlockSize());
-    int nextBlock;
+    long nextBlock;
     open();
     fseek(file, blocksOffset + (idx*realBlockSize), SEEK_SET);
     fread(block.getData(), sb.getBlockSize(), 1, file);
-    fread((void*)&nextBlock, sizeof(int), 1, file);
+    fread((void*)&nextBlock, sizeof(long), 1, file);
     close();
     block.setNextBlock(nextBlock);
     return block;
 }
 
-void VDisk::setBlock(int idx, Block &block) {
+void VDisk::setBlock(long idx, Block &block) {
     SuperBlock sb = getSuperblock();
-    int nextBlock = block.getNextBlock();
+    long nextBlock = block.getNextBlock();
     open();
     fseek(file, blocksOffset + (idx*realBlockSize), SEEK_SET);
     fwrite(block.getData(), sb.getBlockSize(), 1, file);
-    fwrite((void*)&nextBlock, sizeof(int), 1, file);
+    fwrite((void*)&nextBlock, sizeof(long), 1, file);
     close();
 }
 
-int VDisk::getFirstFreeINodeIndex() {
-    int size = getSuperblock().getINodeNumber();
-    for (int i = 0; i < size; ++i)
+long VDisk::getFirstFreeINodeIndex() {
+    long size = getSuperblock().getINodeNumber();
+    for (long i = 0; i < size; ++i)
     {
         if (getInodeBitmapValue(i) == false) {
             return i;
@@ -133,13 +145,13 @@ int VDisk::getFirstFreeINodeIndex() {
     return size;
 }
 
-int VDisk::getFirstTakenINodeIndex() {
+long VDisk::getFirstTakenINodeIndex() {
     return getNextTakenINodeIndex(-1);
 }
 
-int VDisk::getNextTakenINodeIndex(int idx) {
-    int size = getSuperblock().getINodeNumber();
-    for (int i = idx + 1; i < size; ++i)
+long VDisk::getNextTakenINodeIndex(long idx) {
+    long size = getSuperblock().getINodeNumber();
+    for (long i = idx + 1; i < size; ++i)
     {
         if (getInodeBitmapValue(i) == true) {
             return i;
@@ -148,13 +160,13 @@ int VDisk::getNextTakenINodeIndex(int idx) {
     return size;
 }
 
-int VDisk::getFirstFreeBlockIndex() {
+long VDisk::getFirstFreeBlockIndex() {
     return getNextFreeBlockIndex(-1);
 }
 
-int VDisk::getNextFreeBlockIndex(int idx) {
-    int size = getSuperblock().getBlocksNumber();
-    for (int i = idx + 1; i < size; ++i)
+long VDisk::getNextFreeBlockIndex(long idx) {
+    long size = getSuperblock().getBlocksNumber();
+    for (long i = idx + 1; i < size; ++i)
     {
         if (getBlocksBitmapValue(i) == false) {
             return i;
@@ -168,18 +180,18 @@ void VDisk::printStatistics() {
     printf("FS statistics:\n");
     printf("%10s|%15s|%10s|%20s\n", "offset", "type", "size", "state [taken/size]");
 
-    printf("%10d|%15s|%10lu|%9d/%d\n", superBlockOffset, "superblock", sizeof(SuperBlock), sb.getUserSpaceInUse(), sb.getUserSpaceSize());
-    printf("%10d|%15s|%10d|%11s\n", inodeBitmapOffset, "inodes bitmap", sb.getINodeNumber(), "---");
-    printf("%10d|%15s|%10d|%11s\n", blocksBitmapOffset, "blocks bitmap", sb.getBlocksNumber(), "---");
-    printf("%10d|%15s|%10lu|%9d/%d\n", inodesOffset, "inodes", sb.getINodeNumber() * sizeof(INode), getINodesTaken(), sb.getINodeNumber());
-    printf("%10d|%15s|%10d|%9d/%d\n", blocksOffset, "blocks", sb.getBlocksNumber() * realBlockSize, getBlocksTaken(), sb.getBlocksNumber());
+    printf("%10ld|%15s|%10lu|%9ld/%ld\n", superBlockOffset, "superblock", sizeof(SuperBlock), sb.getUserSpaceInUse(), sb.getUserSpaceSize());
+    printf("%10ld|%15s|%10ld|%11s\n", inodeBitmapOffset, "inodes bitmap", sb.getINodeNumber(), "---");
+    printf("%10ld|%15s|%10ld|%11s\n", blocksBitmapOffset, "blocks bitmap", sb.getBlocksNumber(), "---");
+    printf("%10ld|%15s|%10lu|%9ld/%ld\n", inodesOffset, "inodes", sb.getINodeNumber() * sizeof(INode), getINodesTaken(), sb.getINodeNumber());
+    printf("%10ld|%15s|%10ld|%9ld/%ld\n", blocksOffset, "blocks", sb.getBlocksNumber() * realBlockSize, getBlocksTaken(), sb.getBlocksNumber());
 
 }
 
-int VDisk::getINodesTaken() {
-    int taken = 0;
-    int idx = getFirstTakenINodeIndex();
-    int idxMax = getSuperblock().getINodeNumber();
+long VDisk::getINodesTaken() {
+    long taken = 0;
+    long idx = getFirstTakenINodeIndex();
+    long idxMax = getSuperblock().getINodeNumber();
     while (idx < idxMax) {
         ++taken;
         idx = getNextTakenINodeIndex(idx);
@@ -187,10 +199,10 @@ int VDisk::getINodesTaken() {
     return taken;
 }
 
-int VDisk::getBlocksTaken() {
-    int taken = 0;
-    int idx = getFirstTakenBlockIndex();
-    int idxMax = getSuperblock().getINodeNumber();
+long VDisk::getBlocksTaken() {
+    long taken = 0;
+    long idx = getFirstTakenBlockIndex();
+    long idxMax = getSuperblock().getINodeNumber();
     while (idx < idxMax) {
         ++taken;
         idx = getNextTakenBlockIndex(idx);
@@ -198,13 +210,13 @@ int VDisk::getBlocksTaken() {
     return taken;
 }
 
-int VDisk::getFirstTakenBlockIndex() {
+long VDisk::getFirstTakenBlockIndex() {
     return getNextTakenBlockIndex(-1);
 }
 
-int VDisk::getNextTakenBlockIndex(int idx) {
-    int size = getSuperblock().getBlocksNumber();
-    for (int i = idx + 1; i < size; ++i)
+long VDisk::getNextTakenBlockIndex(long idx) {
+    long size = getSuperblock().getBlocksNumber();
+    for (long i = idx + 1; i < size; ++i)
     {
         if (getBlocksBitmapValue(i) == true) {
             return i;
@@ -218,8 +230,8 @@ void VDisk::printSectors() {
     printf("================SECTORS:\n");
     printf("===Inodes: \n");
 
-    const int INODES_SECTORS_IN_LINE = sqrt(sb.getINodeNumber());
-    for (int i = 0, size = sb.getINodeNumber(); i < size; i++) {
+    const long INODES_SECTORS_IN_LINE = sqrt(sb.getINodeNumber());
+    for (long i = 0, size = sb.getINodeNumber(); i < size; i++) {
         char c = getInodeBitmapValue(i) ? 'x' : '_';
         printf("%c", c);
         if ((i+1) % INODES_SECTORS_IN_LINE == 0) {
@@ -229,8 +241,8 @@ void VDisk::printSectors() {
     printf("\n");
 
     printf("===Blocks:\n");
-    const int BLOCK_SECTORS_IN_LINE = sqrt(sb.getBlocksNumber());
-    for (int i = 0, size = sb.getBlocksNumber(); i < size; i++) {
+    const long BLOCK_SECTORS_IN_LINE = sqrt(sb.getBlocksNumber());
+    for (long i = 0, size = sb.getBlocksNumber(); i < size; i++) {
         char c = getBlocksBitmapValue(i) ? 'x' : '_';
         printf("%c", c);
         if ((i+1) % BLOCK_SECTORS_IN_LINE == 0) {
@@ -241,11 +253,3 @@ void VDisk::printSectors() {
 
 }
 
-void VDisk::open() {
-    file = fopen(filename, "r+b");
-    rewind(file);
-}
-
-void VDisk::close() {
-    fclose(file);
-}

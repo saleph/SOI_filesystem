@@ -12,13 +12,13 @@
 
 class INode {
     char name[FILENAME_LEN+1];
-    int fileSize;
-    int firstBlockIndex;
+    long fileSize;
+    long firstBlockIndex;
 
 public:
     INode() { }
 
-    INode(const char *filename, int fileSize, int firstidx)
+    INode(const char *filename, long fileSize, long firstidx)
         : fileSize(fileSize), firstBlockIndex(firstidx)
     {
         assert(strlen(filename) <= FILENAME_LEN);
@@ -34,20 +34,20 @@ public:
         strcpy(name, val);
     }
 
-    int getSize() {
+    long getSize() {
         return fileSize;
     }
 
-    void setSize(int val) {
+    void setSize(long val) {
         assert(val >= 0);
         fileSize = val;
     }
 
-    int getFirstBlockIndex() {
+    long getFirstBlockIndex() {
         return firstBlockIndex;
     }
 
-    void setFirstBlockIndex(int val) {
+    void setFirstBlockIndex(long val) {
         assert(val >= 0);
         firstBlockIndex = val;
     }

@@ -8,14 +8,14 @@
 
 class SuperBlock
 {
-    const int blockSize;
-    const int blocksNumber;
-    const int userSpaceSize;
-    const int maxFileNumber;
-    int userSpaceInUse;
-    int firstINodeIndex;
+    const long blockSize;
+    const long blocksNumber;
+    const long userSpaceSize;
+    const long maxFileNumber;
+    long userSpaceInUse;
+    long firstINodeIndex;
 public:
-    SuperBlock(int s=1, int bs=1, int maxFN=1)
+    SuperBlock(long s=1, long bs=1, long maxFN=1)
         : blockSize(bs),
           blocksNumber((s+blockSize-1)/blockSize),
           userSpaceSize(blockSize*blocksNumber),
@@ -24,53 +24,53 @@ public:
           firstINodeIndex(maxFileNumber)
     { }
 
-    int getUserSpaceSize() {
+    long getUserSpaceSize() {
         return userSpaceSize;
     }
 
-    int getBlockSize() {
+    long getBlockSize() {
         return blockSize;
     }
 
-    int getBlocksNumber() {
+    long getBlocksNumber() {
         return blocksNumber;
     }
 
-    int getUserSpaceInUse() {
+    long getUserSpaceInUse() {
         return userSpaceInUse;
     }
 
-    int getFreeUserSpace() {
+    long getFreeUserSpace() {
         return userSpaceSize - userSpaceInUse;
     }
 
-    int getFirstINodeIndex() {
+    long getFirstINodeIndex() {
         return firstINodeIndex;
     }
 
-    int getINodeNumber() {
+    long getINodeNumber() {
         return maxFileNumber;
     }
 
-    void increaseUserSpaceInUse(int val) {
+    void increaseUserSpaceInUse(long val) {
         userSpaceInUse += val;
         assert(userSpaceInUse <= userSpaceSize);
         assert(userSpaceInUse % blockSize == 0);
     }
 
-    void decreaseUserSpaceInUse(int val) {
+    void decreaseUserSpaceInUse(long val) {
         userSpaceInUse -= val;
         assert(userSpaceInUse >= 0);
         assert(userSpaceInUse % blockSize == 0);
     }
 
-    void setFirstINodeIndex(int val) {
+    void setFirstINodeIndex(long val) {
         assert(val <= maxFileNumber);
         firstINodeIndex = val;
     }
 
     void printStatistics() {
-        printf("Userspace in use: %d\n", userSpaceInUse);
+        printf("Bs: %ld, bn: %ld, maxfn: %ld\n", blockSize, blocksNumber, maxFileNumber);
     }
 };
 

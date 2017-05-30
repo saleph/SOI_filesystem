@@ -8,11 +8,11 @@
 
 
 class Block {
-    int size;
+    long size;
     uint8_t *data;
-    int nextBlock;
+    long nextBlock;
 public:
-    Block(int size)
+    Block(long size)
         : size(size), data(new uint8_t[size])
     { }
 
@@ -20,11 +20,11 @@ public:
         delete[] data;
     }
 
-    int getNextBlock() {
+    long getNextBlock() {
         return nextBlock;
     }
 
-    void setNextBlock(int val) {
+    void setNextBlock(long val) {
         assert(val >= 0);
         nextBlock = val;
     }

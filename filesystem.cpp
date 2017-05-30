@@ -5,9 +5,9 @@ Filesystem::Filesystem(const char *fn)
 { }
 
 void Filesystem::createFS(const char *fn,
-                           int size,
-                           int blockSize,
-                           int maxFileNumber)
+                           long size,
+                           long blockSize,
+                           long maxFileNumber)
 {
     VDisk::createNewVDisk(fn, size, blockSize, maxFileNumber);
 }
@@ -29,7 +29,7 @@ void Filesystem::copyFileFromLinux(const char *fn) {
         return;
     }
 
-    int fileSize = getFileSize(file);
+    long fileSize = getFileSize(file);
     SuperBlock superBlock = vdisk.getSuperblock();
     if (fileSize > superBlock.getFreeUserSpace()) {
         printf("File is too big...\n");
@@ -37,16 +37,16 @@ void Filesystem::copyFileFromLinux(const char *fn) {
         return;
     }
 
-    int blockPos = fileSize == 0 ? superBlock.getBlocksNumber() : vdisk.getFirstFreeBlockIndex();
+    long blockPos = fileSize == 0 ? superBlock.getBlocksNumber() : vdisk.getFirstFreeBlockIndex();
     INode inode(fn, fileSize, blockPos);
-    int inodePos = vdisk.getFirstFreeINodeIndex();
+    long inodePos = vdisk.getFirstFreeINodeIndex();
     vdisk.setInode(inodePos, inode);
     vdisk.setInodeBitmapValue(inodePos, true);
-    printf("Saved Filename at %d: %s\n", inodePos, vdisk.getInode(inodePos).getName());
+    printf("Saved Filename at %ld: %s\n", inodePos, vdisk.getInode(inodePos).getName());
 
-    const int BLOCK_SIZE = superBlock.getBlockSize();
-    int nextBlockPos;
-    int usedSpace = 0;
+    const long BLOCK_SIZE = superBlock.getBlockSize();
+    long nextBlockPos;
+    long usedSpace = 0;
     Block block(BLOCK_SIZE);
     while(fileSize > 0) {
         fread(block.getData(), 1, BLOCK_SIZE, file);
@@ -73,20 +73,20 @@ void Filesystem::copyFileFromLinux(const char *fn) {
 void Filesystem::copyFileFromVDisk(const char *fn) {
     SuperBlock superBlock = vdisk.getSuperblock();
     INode inode;
-    int idx = getInodeIndexOfFile(fn);
+    long idx = getInodeIndexOfFile(fn);
     if (idx == superBlock.getINodeNumber()) {
         printf("No file with specified filename...\n");
         return;
     }
 
     FILE *file = fopen(fn, "wb");
-    int sizeLeft = inode.getSize();
-    const int BLOCK_SIZE = superBlock.getBlockSize();
-    const int BLOCKS_NO = superBlock.getBlocksNumber();
-    int nextBlock = inode.getFirstBlockIndex();
+    long sizeLeft = inode.getSize();
+    const long BLOCK_SIZE = superBlock.getBlockSize();
+    const long BLOCKS_NO = superBlock.getBlocksNumber();
+    long nextBlock = inode.getFirstBlockIndex();
     while(nextBlock < BLOCKS_NO) {
         Block block = vdisk.getBlock(nextBlock);
-        int toReadFromThisBlock = sizeLeft < BLOCK_SIZE ? sizeLeft : BLOCK_SIZE;
+        long toReadFromThisBlock = sizeLeft < BLOCK_SIZE ? sizeLeft : BLOCK_SIZE;
         fwrite(block.getData(), toReadFromThisBlock, 1, file);
         sizeLeft -= toReadFromThisBlock;
         nextBlock = block.getNextBlock();
@@ -98,27 +98,29 @@ void Filesystem::copyFileFromVDisk(const char *fn) {
 }
 
 void Filesystem::ls() {
+    printf("---------------------------------------------------------------\n");
     printf("Files in dir: \n");
     printf("%15s|%8s|%10s\n", "filename", "size", "1. sector");
 
-    int inodesNumber = vdisk.getSuperblock().getINodeNumber();
-    int i = vdisk.getFirstTakenINodeIndex();
+    long inodesNumber = vdisk.getSuperblock().getINodeNumber();
+    long i = vdisk.getFirstTakenINodeIndex();
     while (i < inodesNumber) {
         INode inode = vdisk.getInode(i);
-        printf("%15s|%8d|%10d\n", inode.getName(), inode.getSize(), inode.getFirstBlockIndex());
+        printf("%15s|%8ld|%10ld\n", inode.getName(), inode.getSize(), inode.getFirstBlockIndex());
         i = vdisk.getNextTakenINodeIndex(i);
     }
+    printf("===============================================================\n\n");
 }
 
 void Filesystem::deleteFile(const char *fn) {
     SuperBlock superBlock = vdisk.getSuperblock();
-    int inodeidx = getInodeIndexOfFile(fn);
+    long inodeidx = getInodeIndexOfFile(fn);
     if (inodeidx == superBlock.getINodeNumber()) {
         printf("No file with specified filename...\n");
         return;
     }
     INode inode = vdisk.getInode(inodeidx);
-    int blockidx = inode.getFirstBlockIndex();
+    long blockidx = inode.getFirstBlockIndex();
 
     while (blockidx < superBlock.getBlocksNumber()) {
         vdisk.setBlocksBitmapValue(blockidx, false);
@@ -130,23 +132,25 @@ void Filesystem::deleteFile(const char *fn) {
 }
 
 void Filesystem::printStatistics() {
+    printf("---------------------------------------------------------------\n");
     vdisk.printStatistics();
+    printf("===============================================================\n\n");
 }
 
 void Filesystem::printSectors() {
     //vdisk.printSectors();
 }
 
-int Filesystem::getFileSize(FILE *f) {
+long Filesystem::getFileSize(FILE *f) {
     fseek(f, 0, SEEK_END);
-    int size = ftell(f);
+    long size = ftell(f);
     fseek(f, 0, SEEK_SET);
     return size;
 }
 
-int Filesystem::getInodeIndexOfFile(const char *fn) {
+long Filesystem::getInodeIndexOfFile(const char *fn) {
     SuperBlock superBlock = vdisk.getSuperblock();
-    for (int i = 0, size = superBlock.getINodeNumber(); i < size; ++i) {
+    for (long i = 0, size = superBlock.getINodeNumber(); i < size; ++i) {
         if (vdisk.getInodeBitmapValue(i)) {
             INode inode = vdisk.getInode(i);
             if (!strcmp(inode.getName(), fn)) {
@@ -159,7 +163,7 @@ int Filesystem::getInodeIndexOfFile(const char *fn) {
 }
 
 bool Filesystem::isFileOnVDisk(const char *fn) {
-    int idx = getInodeIndexOfFile(fn);
-    int inodesNumber = vdisk.getSuperblock().getINodeNumber();
+    long idx = getInodeIndexOfFile(fn);
+    long inodesNumber = vdisk.getSuperblock().getINodeNumber();
     return (idx == inodesNumber ? false : true);
 }
