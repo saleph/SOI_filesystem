@@ -4,15 +4,15 @@ Filesystem::Filesystem(const char *fn)
     : vdisk(fn)
 { }
 
-static void createFS(const char *fn,
-                           int size = DEFAULT_SIZE,
-                           int blockSize = DEFALUT_BLOCK_SIZE,
-                           int maxFileNumber = DEFAULT_MAX_FILE_NUMBER)
+void Filesystem::createFS(const char *fn,
+                           int size,
+                           int blockSize,
+                           int maxFileNumber)
 {
     VDisk::createNewVDisk(fn, size, blockSize, maxFileNumber);
 }
 
-static void deleteFS(const char *fn) {
+void Filesystem::deleteFS(const char *fn) {
     VDisk::deleteVDisk(fn);
 }
 
@@ -37,7 +37,7 @@ void Filesystem::copyFileFromLinux(const char *fn) {
         return;
     }
 
-    int blockPos = vdisk.getFirstFreeBlockIndex();
+    int blockPos = fileSize == 0 ? superBlock.getBlocksNumber() : vdisk.getFirstFreeBlockIndex();
     INode inode(fn, fileSize, blockPos);
     int inodePos = vdisk.getFirstFreeINodeIndex();
     vdisk.setInode(inodePos, inode);
@@ -82,14 +82,15 @@ void Filesystem::copyFileFromVDisk(const char *fn) {
     FILE *file = fopen(fn, "wb");
     int sizeLeft = inode.getSize();
     const int BLOCK_SIZE = superBlock.getBlockSize();
+    const int BLOCKS_NO = superBlock.getBlocksNumber();
     int nextBlock = inode.getFirstBlockIndex();
-    do {
+    while(nextBlock < BLOCKS_NO) {
         Block block = vdisk.getBlock(nextBlock);
         int toReadFromThisBlock = sizeLeft < BLOCK_SIZE ? sizeLeft : BLOCK_SIZE;
         fwrite(block.getData(), toReadFromThisBlock, 1, file);
         sizeLeft -= toReadFromThisBlock;
         nextBlock = block.getNextBlock();
-    } while(sizeLeft > 0);
+    }
     assert(nextBlock == superBlock.getBlocksNumber());
     fclose(file);
 
@@ -130,7 +131,10 @@ void Filesystem::deleteFile(const char *fn) {
 
 void Filesystem::printStatistics() {
     vdisk.printStatistics();
-    vdisk.printSectors();
+}
+
+void Filesystem::printSectors() {
+    //vdisk.printSectors();
 }
 
 int Filesystem::getFileSize(FILE *f) {

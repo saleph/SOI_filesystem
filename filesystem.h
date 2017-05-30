@@ -29,6 +29,7 @@ public:
     void ls();
     void deleteFile(const char *fn);
     void printStatistics();
+    void printSectors();
 
 private:
     int getFileSize(FILE *f);

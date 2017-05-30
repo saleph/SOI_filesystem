@@ -1,19 +1,82 @@
 #include <iostream>
-#include "bitmap.h"
-#include "block.h"
-#include "superblock.h"
 #include "filesystem.h"
-#include "vdisk.h"
 #include <cstdio>
+#include <cstring>
+
+void doDefault() {
+    Filesystem::createFS("lll");
+    Filesystem("lll").printStatistics();
+
+}
 
 int main(int argc, char *argv[])
 {
-    VDisk::createNewVDisk("dd");
-    Filesystem fs("dd");
-    fs.copyFileFromLinux("file.txt");
-    fs.ls();
-    fs.printStatistics();
-    //fs.copyFileFromVDisk("file.txt");
+    if(argc<2 || !strcmp(argv[1], "-h")) {
+        printf("usage:\n"
+               "FS_NAME -c [SIZE] [BLOCK_SIZE] [MAX_FILES_NO]: create FS\n"
+               "FS_NAME -v FILENAME: copy from physical disk to FS\n"
+               "FS_NAME -m FILENAME: copy from FS to physical disk\n"
+               "FS_NAME -l: list files in dir\n"
+               "FS_NAME -s: display statistics\n"
+               "FS_NAME -d FILENAME: delete file from FS\n"
+               "FS_NAME -r: delete FS\n"
+               "FS_NAME -i: display taken sectors\n"
+               "\n");
+        doDefault();
+        return -1;
+    }
+
+    switch(argv[2][1]) {
+        case 'c' :
+            switch (argc) {
+            case 3:
+                Filesystem::createFS(argv[1]);
+                return 0;
+            case 4:
+                Filesystem::createFS(argv[1], atoi(argv[3]));
+                return 0;
+            case 5:
+                Filesystem::createFS(argv[1], atoi(argv[3]), atoi(argv[4]));
+                return 0;
+            case 6:
+                Filesystem::createFS(argv[1], atoi(argv[3]), atoi(argv[4]), atoi(argv[5]));
+                return 0;
+            }
+            return 0;
+
+        case 'v' :
+            Filesystem(argv[1]).copyFileFromLinux(argv[3]);
+            return 0;
+
+        case 'm' :
+            Filesystem(argv[1]).copyFileFromVDisk(argv[3]);
+            return 0;
+
+        case 'l' :
+            Filesystem(argv[1]).ls();
+            return 0;
+
+        case 's' :
+            Filesystem(argv[1]).printStatistics();
+            return 0;
+
+        case 'r' :
+            Filesystem::deleteFS(argv[1]);
+            return 0;
+
+        case 'd' :
+            Filesystem(argv[1]).deleteFile(argv[3]);
+            return 0;
+
+        case 'i' :
+            Filesystem(argv[1]).printSectors();
+            return 0;
+
+        default :
+            printf("ERROR: Command incorrect...\n");
+            return -1;
+    }
+
 
     return 0;
 }

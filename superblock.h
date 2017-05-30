@@ -20,6 +20,7 @@ public:
           blocksNumber((s+blockSize-1)/blockSize),
           userSpaceSize(blockSize*blocksNumber),
           maxFileNumber(maxFN),
+          userSpaceInUse(0),
           firstINodeIndex(maxFileNumber)
     { }
 
