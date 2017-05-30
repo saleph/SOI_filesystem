@@ -9,7 +9,6 @@ SOURCES += main.cpp \
 
 HEADERS += \
     vdisk.h \
-    bitmap.h \
     superblock.h \
     block.h \
     inode.h \
