@@ -21,20 +21,20 @@ void Filesystem::deleteFS(const char *fn) {
 void Filesystem::copyFileFromLinux(const char *fn) {
     assert(strlen(fn) < FILENAME_LEN);
     if (isFileOnVDisk(fn)) {
-        printf("\t\t\t\t\\tt\t\t#!# '%s' already exist on vdisk...\n", fn);
+        printf("\t\t\t\t\t\t\t\t#!# '%s' already exist on vdisk...\n", fn);
         return;
     }
 
     FILE *file = fopen(fn, "rb");
     if (!file) {
-        printf("\t\t\t\t\\tt\t\t#!# '%s' doesn't exist...\n", fn);
+        printf("\t\t\t\t\t\t\t\t#!# '%s' doesn't exist...\n", fn);
         return;
     }
 
     long fileSize = getFileSize(file);
     SuperBlock superBlock = vdisk.getSuperblock();
     if (fileSize > superBlock.getFreeUserSpace()) {
-        printf("\t\t\t\t\\tt\t\t#!# '%s' is too big...\n", fn);
+        printf("\t\t\t\t\t\t\t\t#!# '%s' is too big...\n", fn);
         fclose(file);
         return;
     }
@@ -76,7 +76,7 @@ void Filesystem::copyFileFromVDisk(const char *fn) {
     SuperBlock superBlock = vdisk.getSuperblock();
     long idx = getInodeIndexOfFile(fn);
     if (idx == superBlock.getINodeNumber()) {
-        printf("\t\t\t\t\\tt\t\t#!# No file with specified filename...\n");
+        printf("\t\t\t\t\t\t\t\t#!# No file with specified filename...\n");
         return;
     }
     INode inode = vdisk.getInode(idx);
@@ -119,7 +119,7 @@ void Filesystem::deleteFile(const char *fn) {
     SuperBlock superBlock = vdisk.getSuperblock();
     long inodeidx = getInodeIndexOfFile(fn);
     if (inodeidx == superBlock.getINodeNumber()) {
-        printf("\t\t\t\t\\tt\t\t#!# '%s' doesn't exist on vdisk...\n", fn);
+        printf("\t\t\t\t\t\t\t\t#!# '%s' doesn't exist on vdisk...\n", fn);
         return;
     }
     INode inode = vdisk.getInode(inodeidx);
