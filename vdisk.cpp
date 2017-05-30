@@ -15,7 +15,7 @@ void VDisk::createNewVDisk(const char *fn,
     long wholeFileSize = superBlockSize + inodeBitmapSize + blocksBitmapSize + inodesSize + blocksSize;
 
     FILE *f = fopen(fn, "wb");
-    fwrite((char*)&superBlock, sizeof(superBlock), 1, f);
+    fwrite((void*)&superBlock, sizeof(SuperBlock), 1, f);
     ftruncate(fileno(f), wholeFileSize); // fills with zeros
     fclose(f);
 }
@@ -25,9 +25,9 @@ void VDisk::deleteVDisk(const char *fn) {
 }
 
 VDisk::VDisk(const char *fn) {
+    superBlockOffset = 0;
     strcpy(filename, fn);
     SuperBlock sb = getSuperblock();
-    superBlockOffset = 0;
     inodeBitmapOffset = sizeof(SuperBlock);
     blocksBitmapOffset = inodeBitmapOffset + sb.getINodeNumber();
     inodesOffset = blocksBitmapOffset + sb.getBlocksNumber();
@@ -38,17 +38,16 @@ VDisk::VDisk(const char *fn) {
 SuperBlock VDisk::getSuperblock() {
     open();
     SuperBlock sb;
-    sb.printStatistics();
-    fseek(file, superBlockOffset, SEEK_SET);
     fread((void*)&sb, sizeof(SuperBlock), 1, file);
-    sb.printStatistics();
     close();
     return sb;
 }
 
 void VDisk::open() {
     file = fopen(filename, "r+b");
-    assert(!file);
+    if (!file) {
+        printf("%d!!!!!!!!!!!!!!!!!!!!! FS DONT OPENED !!!!!!!!!!!!!!!!\n", file);
+    }
     rewind(file);
 }
 
@@ -58,7 +57,6 @@ void VDisk::close() {
 
 void VDisk::setSuperBlock(SuperBlock &sb) {
     open();
-    fseek(file, superBlockOffset, SEEK_SET);
     fwrite((void*)&sb, sizeof(SuperBlock), 1, file);
     close();
 }
@@ -202,7 +200,7 @@ long VDisk::getINodesTaken() {
 long VDisk::getBlocksTaken() {
     long taken = 0;
     long idx = getFirstTakenBlockIndex();
-    long idxMax = getSuperblock().getINodeNumber();
+    long idxMax = getSuperblock().getBlocksNumber();
     while (idx < idxMax) {
         ++taken;
         idx = getNextTakenBlockIndex(idx);

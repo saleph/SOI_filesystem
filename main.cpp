@@ -15,6 +15,11 @@ void doDefault() {
     Filesystem("lll").copyFileFromLinux("plik2");
     Filesystem("lll").printStatistics();
     Filesystem("lll").ls();
+    Filesystem("lll")
+            .copyFileFromLinux("vania.jpg");
+    Filesystem("lll")
+            .printStatistics();
+    Filesystem("lll").ls();
 }
 
 int main(int argc, char *argv[])
@@ -65,7 +70,8 @@ int main(int argc, char *argv[])
             return 0;
 
         case 's' :
-            Filesystem(argv[1]).printStatistics();
+            Filesystem(argv[1])
+                    .printStatistics();
             return 0;
 
         case 'r' :

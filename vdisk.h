@@ -8,8 +8,7 @@
 #include "block.h"
 #include "inode.h"
 #include <cstdlib>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
 #include "bitmap.h"
 #include <cstring>
 

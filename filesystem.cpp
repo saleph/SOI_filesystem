@@ -53,11 +53,12 @@ void Filesystem::copyFileFromLinux(const char *fn) {
         fileSize -= BLOCK_SIZE;
         if (fileSize <= 0) {
             // mark end of file
-            block.setNextBlock(superBlock.getBlocksNumber());
+            nextBlockPos = superBlock.getBlocksNumber();
         } else {
             nextBlockPos = vdisk.getNextFreeBlockIndex(blockPos);
-            block.setNextBlock(nextBlockPos);
         }
+
+        block.setNextBlock(nextBlockPos);
         vdisk.setBlock(blockPos, block);
         vdisk.setBlocksBitmapValue(blockPos, true);
         usedSpace += BLOCK_SIZE;
@@ -72,26 +73,27 @@ void Filesystem::copyFileFromLinux(const char *fn) {
 
 void Filesystem::copyFileFromVDisk(const char *fn) {
     SuperBlock superBlock = vdisk.getSuperblock();
-    INode inode;
     long idx = getInodeIndexOfFile(fn);
     if (idx == superBlock.getINodeNumber()) {
         printf("No file with specified filename...\n");
         return;
     }
+    INode inode = vdisk.getInode(idx);
+
 
     FILE *file = fopen(fn, "wb");
     long sizeLeft = inode.getSize();
     const long BLOCK_SIZE = superBlock.getBlockSize();
     const long BLOCKS_NO = superBlock.getBlocksNumber();
-    long nextBlock = inode.getFirstBlockIndex();
-    while(nextBlock < BLOCKS_NO) {
-        Block block = vdisk.getBlock(nextBlock);
+    long blockIdx = inode.getFirstBlockIndex();
+    while(blockIdx < BLOCKS_NO) {
+        Block block = vdisk.getBlock(blockIdx);
         long toReadFromThisBlock = sizeLeft < BLOCK_SIZE ? sizeLeft : BLOCK_SIZE;
         fwrite(block.getData(), toReadFromThisBlock, 1, file);
         sizeLeft -= toReadFromThisBlock;
-        nextBlock = block.getNextBlock();
+        blockIdx = block.getNextBlock();
     }
-    assert(nextBlock == superBlock.getBlocksNumber());
+    assert(blockIdx == BLOCKS_NO);
     fclose(file);
 
     printf("'%s' copied from vdisk...\n", fn);
